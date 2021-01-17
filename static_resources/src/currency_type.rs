@@ -37,7 +37,7 @@ impl FromStr for CurrencyType {
 impl ToSql for CurrencyType {
     to_sql_checked!();
 
-    fn to_sql(&self, _ty: &Type, out: &mut Vec<u8>) -> Result<IsNull, Box<Error + Sync + Send>> {
+    fn to_sql(&self, _ty: &Type, out: &mut Vec<u8>) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
         use self::CurrencyType::*;
 
         text_to_sql(
@@ -56,7 +56,7 @@ impl ToSql for CurrencyType {
 }
 
 impl<'a> FromSql<'a> for CurrencyType {
-    fn from_sql(_: &Type, raw: &'a [u8]) -> Result<Self, Box<Error + Sync + Send>> {
+    fn from_sql(_: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn Error + Sync + Send>> {
         use self::CurrencyType::*;
 
         text_from_sql(raw).and_then(|buf| {

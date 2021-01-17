@@ -3,7 +3,7 @@ extern crate regex;
 use regex::Regex;
 use std::sync::Arc;
 
-pub type ParamsConverter<T> = Arc<Fn(Vec<&str>) -> Option<T> + Send + Sync>;
+pub type ParamsConverter<T> = Arc<dyn Fn(Vec<&str>) -> Option<T> + Send + Sync>;
 
 /// `Router` class maps regex to type-safe list of routes, defined by `enum Route`
 #[derive(Clone)]

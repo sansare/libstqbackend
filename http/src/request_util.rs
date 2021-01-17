@@ -33,7 +33,7 @@ pub enum ParseError {
 /// Fails with `error::Error::UnprocessableEntity` if step 1 fails.
 ///
 /// Fails with `error::Error::BadRequest` with message if step 2 fails.
-pub fn parse_body<T>(body: hyper::Body) -> Box<Future<Item = T, Error = failure::Error>>
+pub fn parse_body<T>(body: hyper::Body) -> Box<dyn Future<Item = T, Error = failure::Error>>
 where
     T: for<'a> Deserialize<'a> + 'static,
 {
@@ -56,7 +56,7 @@ where
 }
 
 /// Reads body of request and response in Future format
-pub fn read_body(body: hyper::Body) -> Box<Future<Item = String, Error = hyper::Error> + Send> {
+pub fn read_body(body: hyper::Body) -> Box<dyn Future<Item = String, Error = hyper::Error> + Send> {
     Box::new(
         body.fold(Vec::new(), |mut acc, chunk| {
             acc.extend_from_slice(&*chunk);
@@ -70,14 +70,14 @@ pub fn read_body(body: hyper::Body) -> Box<Future<Item = String, Error = hyper::
 }
 
 /// Try reads body of request and response in Future format
-pub fn try_read_body(body: hyper::Body) -> Box<Future<Item = Vec<u8>, Error = hyper::Error> + Send> {
+pub fn try_read_body(body: hyper::Body) -> Box<dyn Future<Item = Vec<u8>, Error = hyper::Error> + Send> {
     Box::new(body.fold(Vec::new(), |mut acc, chunk| {
         acc.extend_from_slice(&*chunk);
         future::ok::<_, hyper::Error>(acc)
     }))
 }
 
-pub fn serialize_future<T, E, F>(f: F) -> Box<Future<Item = String, Error = failure::Error>>
+pub fn serialize_future<T, E, F>(f: F) -> Box<dyn Future<Item = String, Error = failure::Error>>
 where
     F: IntoFuture<Item = T, Error = E> + 'static,
     E: 'static,

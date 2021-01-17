@@ -23,7 +23,7 @@ pub enum CommitterRole {
 }
 
 impl FromStr for CommitterRole {
-    type Err = Box<Error>;
+    type Err = Box<dyn Error>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
@@ -56,7 +56,7 @@ impl Display for CommitterRole {
 impl ToSql for CommitterRole {
     to_sql_checked!();
 
-    fn to_sql(&self, _ty: &Type, out: &mut Vec<u8>) -> Result<IsNull, Box<Error + Sync + Send>> {
+    fn to_sql(&self, _ty: &Type, out: &mut Vec<u8>) -> Result<IsNull, Box<dyn Error + Sync + Send>> {
         use self::CommitterRole::*;
 
         text_to_sql(
@@ -76,7 +76,7 @@ impl ToSql for CommitterRole {
 }
 
 impl<'a> FromSql<'a> for CommitterRole {
-    fn from_sql(_: &Type, raw: &'a [u8]) -> Result<Self, Box<Error + Sync + Send>> {
+    fn from_sql(_: &Type, raw: &'a [u8]) -> Result<Self, Box<dyn Error + Sync + Send>> {
         use self::CommitterRole::*;
 
         text_from_sql(raw).and_then(|buf| {

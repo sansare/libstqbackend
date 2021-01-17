@@ -26,7 +26,7 @@ impl<S: HttpClient> HttpClient for HttpClientWithDefaultHeaders<S> {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = Response, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = Response, Error = Error> + Send> {
         let self_headers = self.headers.clone();
         let mut existing_headers = (*self_headers.lock().unwrap()).clone();
 

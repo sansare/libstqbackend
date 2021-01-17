@@ -102,13 +102,13 @@ impl<'a> AsExpression<VarChar> for &'a Currency {
     }
 }
 impl ToSql<VarChar, Pg> for Currency {
-    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> Result<IsNull, Box<Error + Send + Sync>> {
+    fn to_sql<W: Write>(&self, out: &mut Output<W, Pg>) -> Result<IsNull, Box<dyn Error + Send + Sync>> {
         out.write_all(self.code().as_bytes())?;
         Ok(IsNull::No)
     }
 }
 impl FromSqlRow<VarChar, Pg> for Currency {
-    fn build_from_row<R: Row<Pg>>(row: &mut R) -> Result<Self, Box<Error + Send + Sync>> {
+    fn build_from_row<R: Row<Pg>>(row: &mut R) -> Result<Self, Box<dyn Error + Send + Sync>> {
         match row.take() {
             Some(v) => {
                 let s = str::from_utf8(v).unwrap_or("unreadable value");

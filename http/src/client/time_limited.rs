@@ -31,7 +31,7 @@ impl<S: HttpClient> HttpClient for TimeLimitedHttpClient<S> {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = Response, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = Response, Error = Error> + Send> {
         let time_left_mutex = self.time_left.clone();
         let time_left_before_request = { *time_left_mutex.lock().unwrap() };
         let time_left_before_request_ms = time_left_before_request.as_secs() as u32 * 1000 + time_left_before_request.subsec_millis();

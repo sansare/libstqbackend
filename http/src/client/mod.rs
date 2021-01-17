@@ -34,7 +34,7 @@ pub trait HttpClient: Send + Sync + 'static {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = Response, Error = Error> + Send>;
+    ) -> Box<dyn Future<Item = Response, Error = Error> + Send>;
 
     fn request_json<T>(
         &self,
@@ -42,7 +42,7 @@ pub trait HttpClient: Send + Sync + 'static {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = T, Error = Error> + Send>
+    ) -> Box<dyn Future<Item = T, Error = Error> + Send>
     where
         T: for<'a> Deserialize<'a> + 'static + Send,
         Self: Sized,
@@ -96,7 +96,7 @@ impl Client {
         }
     }
 
-    pub fn stream(self) -> Box<Stream<Item = (), Error = ()>> {
+    pub fn stream(self) -> Box<dyn Stream<Item = (), Error = ()>> {
         let Self {
             client,
             rx,
@@ -115,7 +115,7 @@ impl Client {
         }
     }
 
-    fn send_request(handle: &Handle, client: &HyperClient, payload: Payload, timeout: u64) -> Box<Future<Item = (), Error = ()>> {
+    fn send_request(handle: &Handle, client: &HyperClient, payload: Payload, timeout: u64) -> Box<dyn Future<Item = (), Error = ()>> {
         let Payload {
             url,
             method,
@@ -184,9 +184,9 @@ impl Client {
         let work_with_timeout = work
             .and_then(move |res| {
                 let status = res.status();
-                let body_future: Box<Future<Item = String, Error = Error>> = Box::new(read_body(res.body()).map_err(Error::Network));
+                let body_future: Box<dyn Future<Item = String, Error = Error>> = Box::new(read_body(res.body()).map_err(Error::Network));
                 match status.as_u16() {
-                    200...299 => body_future,
+                    200..=299 => body_future,
 
                     _ => Box::new(body_future.and_then(move |body| {
                         let message = serde_json::from_str::<ErrorMessage>(&body).ok();
@@ -228,7 +228,7 @@ impl ClientHandle {
         url: String,
         body: Option<String>,
         auth_data: Option<String>,
-    ) -> Box<Future<Item = T, Error = Error> + Send>
+    ) -> Box<dyn Future<Item = T, Error = Error> + Send>
     where
         T: for<'a> Deserialize<'a> + 'static + Send,
     {
@@ -246,7 +246,7 @@ impl ClientHandle {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = T, Error = Error> + Send>
+    ) -> Box<dyn Future<Item = T, Error = Error> + Send>
     where
         T: for<'a> Deserialize<'a> + 'static + Send,
     {
@@ -266,7 +266,7 @@ impl ClientHandle {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = String, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = String, Error = Error> + Send> {
         Box::new(self.send_request_with_retries(method, url, body, headers, None, self.max_retries))
     }
 
@@ -278,7 +278,7 @@ impl ClientHandle {
         headers: Option<Headers>,
         last_err: Option<Error>,
         retries: usize,
-    ) -> Box<Future<Item = String, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = String, Error = Error> + Send> {
         if retries == 0 {
             let error = last_err.unwrap_or_else(|| Error::Unknown("Unexpected missing error in send_request_with_retries".to_string()));
             Box::new(future::err(error))
@@ -314,7 +314,7 @@ impl ClientHandle {
         url: String,
         body: Option<String>,
         headers: Option<hyper::Headers>,
-    ) -> Box<Future<Item = String, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = String, Error = Error> + Send> {
         debug!(
             "Starting outbound http request: {} {} with body {} and headers {}",
             method,
@@ -359,7 +359,7 @@ impl HttpClient for ClientHandle {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = Response, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = Response, Error = Error> + Send> {
         Box::new(self.simple_request(method, url, body, headers).map(Response))
     }
 }
@@ -371,7 +371,7 @@ impl<T: HttpClient> HttpClient for Box<T> {
         url: String,
         body: Option<String>,
         headers: Option<Headers>,
-    ) -> Box<Future<Item = Response, Error = Error> + Send> {
+    ) -> Box<dyn Future<Item = Response, Error = Error> + Send> {
         (**self).request(method, url, body, headers)
     }
 }

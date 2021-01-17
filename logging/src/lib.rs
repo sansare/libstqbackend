@@ -14,8 +14,8 @@ use std::io::Write;
 use std::sync::Arc;
 
 pub struct CombinedLogger {
-    pub inner: Vec<Arc<Log>>,
-    pub filter: Box<Fn(&Record) -> bool + Send + Sync>,
+    pub inner: Vec<Arc<dyn Log>>,
+    pub filter: Box<dyn Fn(&Record) -> bool + Send + Sync>,
 }
 
 impl Default for CombinedLogger {

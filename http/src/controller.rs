@@ -22,20 +22,20 @@ use request_util::{get_correlation_token, try_read_body};
 use errors::*;
 use system::{SystemService, SystemServiceImpl};
 
-pub type ControllerFuture = Box<Future<Item = String, Error = failure::Error>>;
+pub type ControllerFuture = Box<dyn Future<Item = String, Error = failure::Error>>;
 
 /// The meat of your application. Best used with RouteParser in utils.
 pub trait Controller {
     fn call(&self, request: Request) -> ControllerFuture;
 }
 
-pub type ServerFuture = Box<Future<Item = Response, Error = hyper::Error>>;
+pub type ServerFuture = Box<dyn Future<Item = Response, Error = hyper::Error>>;
 
 /// Batteries-included Service for Hyper HTTP server. Feed it your Controller and it'll adapt it for Hyper.
 pub struct Application<E: Fail + Codeable + PayloadCarrier> {
     pub controller: Arc<dyn Controller>,
-    pub system_service: Box<SystemService>,
-    pub middleware: Arc<Fn(Response) -> Response>,
+    pub system_service: Box<dyn SystemService>,
+    pub middleware: Arc<dyn Fn(Response) -> Response>,
     _error_type: std::marker::PhantomData<E>,
 }
 
